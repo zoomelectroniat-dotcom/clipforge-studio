@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}ClipForge Studio{% endblock %}</title>
+<link rel="stylesheet" href="/static/css/tokens.css">
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/htmx.min.js" defer></script>
+<script src="/static/js/app.js" defer></script>
+</head>
+<body>
+<div class="c-shell">
+  <nav class="c-sidenav" aria-label="Main">
+    <div class="brand"><a href="/app">ClipForge Studio</a></div>
+    {% set nav = [
+      ('dashboard', 'Home', '/app'),
+      ('new', 'New project', '/app/projects/new'),
+      ('brand', 'Brand kits', '/app/brand-templates'),
+      ('social', 'Social accounts', '/app/social'),
+      ('schedule', 'Scheduler', '/app/schedule'),
+      ('billing', 'Billing', '/app/billing'),
+      ('analytics', 'Analytics', '/app/analytics'),
+      ('settings', 'Settings', '/app/settings'),
+    ] %}
+    {% for key, label, href in nav %}
+    <a class="c-navlink{% if active == key %} is-active{% endif %}" href="{{ href }}"
+       {% if active == key %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+    <div class="spacer"></div>
+    <form method="post" action="/auth/logout"><button class="c-btn ghost sm" type="submit">Sign out</button></form>
+  </nav>
+  <div class="c-main">
+    <header class="c-header">
+      <a class="c-credits" href="/app/billing" aria-label="{{ user.credits_balance }} credits remaining, view billing">
+        {{ user.credits_balance }} credits
+      </a>
+      <span class="muted" aria-label="Signed in as">{{ user.display_name }}</span>
+    </header>
+    <main class="c-content{% if wide %} wide{% endif %}">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

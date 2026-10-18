@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClipForge Studio — Turn long videos into viral shorts</title>
+<link rel="stylesheet" href="/static/css/tokens.css">
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<nav class="c-topnav">
+  <a class="brand" href="/">ClipForge Studio</a>
+  <div class="links">
+    <a href="/pricing">Pricing</a>
+    {% if user %}<a href="/app">Open app</a>{% else %}
+    <a href="/login">Sign in</a><a class="c-btn primary sm" href="/signup">Get started</a>{% endif %}
+  </div>
+</nav>
+<header class="c-hero">
+  <h1>Turn one long video into a week of shorts</h1>
+  <p class="lead">Upload a video. Our AI finds the moments people actually watch, scores each one 0–100, and cuts vertical clips with burned-in captions. Free to start.</p>
+  <p><a class="c-btn primary lg" href="/signup">Start clipping free</a></p>
+  <p class="muted">60 free credits on signup · No card required</p>
+</header>
+<main class="c-content">
+  <div class="c-grid cols-3">
+    <div class="c-card"><h3>AI finds the highlights</h3><p class="muted">We transcribe every word, then score each moment on hook, flow and value — you only see the best.</p></div>
+    <div class="c-card"><h3>Captions that pop</h3><p class="muted">Word-timed karaoke captions burned in, with keyword highlights and your own style.</p></div>
+    <div class="c-card"><h3>Vertical, automatically</h3><p class="muted">Fill, fit or split layouts reframe any video to 9:16. Export 1080p MP4 + SRT in one click.</p></div>
+  </div>
+  <div class="c-empty mt-24">
+    <h2>How it works</h2>
+    <p>1. Upload or paste a link &nbsp;→&nbsp; 2. Pick clip length and topic &nbsp;→&nbsp; 3. Review scored clips &nbsp;→&nbsp; 4. Edit captions, trim, export</p>
+    <a class="c-btn secondary" href="/pricing">See plans</a>
+  </div>
+</main>
+</body>
+</html>

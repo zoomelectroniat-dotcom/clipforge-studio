@@ -1,0 +1,51 @@
+feature,area,priority,original,clone,notes
+Sign up / sign in with Google or email,onboarding,must,yes,wip,v1: email+password live; Google OAuth pending (phase 2)
+Dashboard with project list and credit balance,onboarding,must,yes,wip,
+Import video: file upload with progress,import,must,yes,wip,plan caps differ (10 GB free/starter
+Import video: YouTube URL,import,must,yes,wip,v1: URL accepted/classified; yt-dlp download pending
+Import video: cloud/source links (Drive/Dropbox/Zoom/Loom/Twitch/Rumble/Vimeo/StreamYard/S3 MP4),import,must,yes,wip,v1: classified by host; direct-MP4 fetch works; Drive/Vimeo/etc pending
+Clip length range setting,curation,must,yes,wip,
+Genre selection (podcast/vlog/sports/talking-head/presentation),curation,must,yes,wip,
+Language selection,curation,must,yes,wip,
+Keyword-directed clipping,curation,must,yes,wip,
+Natural-language prompt clipping,curation,must,yes,wip,rebuild behavior with own LLM; weights not takable
+AI auto highlight detection,curation,must,yes,wip,
+Virality score 0-100 per clip,scoring,must,yes,wip,rebuild with own hook/flow/value rubric
+Score explanation (hook/flow/value breakdown),scoring,must,yes,wip,
+Clip gallery cards (thumbnail/title/duration/score),clips,must,yes,wip,
+Processing progress bar with ETA + email on completion,processing,must,yes,wip,v1: live htmx progress; ETA % only; completion email pending
+Clip editor: preview player + segment timeline,editor,must,yes,wip,
+Clip editor: transcript panel with click-text-to-edit,editor,must,yes,wip,
+Clip editor: inline caption correction,editor,must,yes,wip,
+Clip editor: trim via timeline or text selection,editor,must,yes,wip,"v1: trim via time inputs; seek slider scrubs, text-select trim pending"
+Auto word-timed captions,captions,must,yes,wip,
+Animated/karaoke caption style,captions,must,yes,wip,
+Keyword highlights and emoji in captions,captions,must,yes,wip,
+Auto reframe to 9:16 with speaker tracking,reframe,must,yes,wip,needs face/active-speaker detection | v1: 9:16 reframe live (center crop); speaker/face tracking pending
+Fill/Fit/Split reframe layouts,reframe,must,yes,wip,
+MP4 1080p download,export,must,yes,wip,
+SRT caption file download,export,must,yes,wip,
+Three/Four/Screenshare/Gameplay layouts,reframe,should,yes,no,
+Saved brand templates (1-2 per plan),branding,should,yes,no,
+Brand template: custom fonts/colors/logo,branding,should,yes,no,
+Brand template: aspect-ratio presets (9:16/1:1/16:9/4:5),branding,should,yes,no,
+AI-generated opening hook for clips,curation,should,yes,no,
+AI B-roll insertion in editor,editor,should,yes,no,needs own stock or generated visuals
+Filler-word and pause removal (audio cleaning),editor,should,yes,no,
+Speaker labels in captions,captions,should,yes,no,
+Social account OAuth connections,publishing,should,yes,no,per-platform approval needed
+Schedule posts to social platforms,publishing,should,yes,no,posting quotas partner-dependent
+Per-video performance analytics,analytics,should,yes,no,
+XML export for Premiere/DaVinci,export,should,yes,no,
+AI voiceover for clips,editor,could,yes,no,
+Series templates (reusable output style),branding,could,yes,no,
+4K export,export,could,yes,no,
+Multi-user team workspace,team,could,yes,no,out of core-loop slice
+Zapier integration,integrations,could,yes,no,
+Public API access,api,could,yes,no,out of core-loop slice
+MCP server for AI agents,api,could,yes,no,out of core-loop slice
+Virality model training data,ai-model,could,yes,skip,proprietary dataset; rebuild with own scoring rubric
+Licensed stock B-roll catalog,content,could,yes,skip,licensed footage cannot be copied
+Social-platform posting partnerships and quotas,integrations,could,yes,skip,depends on each platform's API approval
+Proprietary model weights (curation/prompt models),ai-model,could,yes,skip,behavior reimplementable; weights not takable
+Brand assets/name/logo/marketing copy,brand,could,yes,skip,identity belongs to original; clone gets own brand

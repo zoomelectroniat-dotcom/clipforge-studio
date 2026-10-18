@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing — ClipForge Studio</title>
+<link rel="stylesheet" href="/static/css/tokens.css">
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<nav class="c-topnav">
+  <a class="brand" href="/">ClipForge Studio</a>
+  <div class="links"><a href="/">Home</a><a class="c-btn primary sm" href="/signup">Get started</a></div>
+</nav>
+<main class="c-content">
+  <h1 class="page-title">Simple pricing</h1>
+  <p class="muted">Credits are minutes of source video processed. 1 minute of video = 1 credit.</p>
+  {% if notice %}<div class="c-error-banner" role="alert"><div>{{ notice }}</div></div>{% endif %}
+  <div class="c-grid cols-3 mt-24">
+    <div class="c-card"><h3>Free</h3><p style="font-size:var(--type-display-size);font-weight:700">$0</p>
+      <ul><li>60 credits on signup</li><li>720p previews</li><li>Fill / Fit / Split layouts</li></ul>
+      <a class="c-btn secondary block" href="/signup">Start free</a></div>
+    <div class="c-card"><h3>Starter</h3><p style="font-size:var(--type-display-size);font-weight:700">$15<span class="muted" style="font-size:var(--type-sm-size)">/mo</span></p>
+      <ul><li>200 credits / month</li><li>1080p exports</li><li>2 brand kits</li></ul>
+      <form method="post" action="/billing/checkout">
+        <input type="hidden" name="plan" value="starter">
+        <button class="c-btn secondary block" type="submit">Choose Starter</button>
+      </form></div>
+    <div class="c-card"><h3>Pro</h3><p style="font-size:var(--type-display-size);font-weight:700">$49<span class="muted" style="font-size:var(--type-sm-size)">/mo</span></p>
+      <ul><li>800 credits / month</li><li>1080p exports</li><li>Unlimited brand kits</li><li>Priority rendering</li></ul>
+      <form method="post" action="/billing/checkout">
+        <input type="hidden" name="plan" value="pro">
+        <button class="c-btn primary block" type="submit">Choose Pro</button>
+      </form></div>
+  </div>
+  {% if not stripe_enabled %}<p class="muted mt-24">Paid plans with real checkout are coming soon — v1 runs on the internal credit ledger.</p>{% endif %}
+</main>
+</body>
+</html>

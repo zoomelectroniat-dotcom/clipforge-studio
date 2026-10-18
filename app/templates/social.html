@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "macros.html" import empty_state %}
+{% block title %}Social accounts — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">Social accounts</h1>
+{% if not accounts %}
+{{ empty_state("No accounts connected", "Direct publishing to TikTok, YouTube, Instagram and more ships in phase 2. Your clips are always downloadable right now.", "", "") }}
+{% else %}
+<table class="c-table"><thead><tr><th>Platform</th><th>Account</th><th>Status</th></tr></thead><tbody>
+{% for a in accounts %}
+<tr><td>{{ a.platform }}</td><td>{{ a.platform_account_name or '—' }}</td><td>{{ a.oauth_status }}</td></tr>
+{% endfor %}
+</tbody></table>
+{% endif %}
+<p class="muted mt-16">Phase 2: OAuth connections and one-click posting per platform (each platform needs its own app approval).</p>
+{% endblock %}

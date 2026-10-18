@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — ClipForge Studio</title>
+<link rel="stylesheet" href="/static/css/tokens.css">
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<nav class="c-topnav"><a class="brand" href="/">ClipForge Studio</a>
+<div class="links"><a href="/signup">Sign up</a></div></nav>
+<main class="c-content" style="max-width:480px">
+  <h1 class="page-title">Welcome back</h1>
+  {% if error %}<div class="c-error-banner" role="alert"><div>{{ error }}</div></div>{% endif %}
+  {% if google_enabled %}
+  <a class="c-btn secondary block lg" href="/auth/google">Continue with Google</a>
+  <p class="muted mt-8" style="text-align:center">or</p>
+  {% endif %}
+  <form method="post" action="/auth/login" class="mt-16">
+    <div class="c-field"><label for="li-email">Email</label>
+      <input id="li-email" name="email" type="email" required autocomplete="email"></div>
+    <div class="c-field"><label for="li-pass">Password</label>
+      <input id="li-pass" name="password" type="password" required autocomplete="current-password"></div>
+    <button class="c-btn primary block lg" type="submit">Sign in</button>
+  </form>
+  <p class="muted mt-16">New here? <a href="/signup">Create an account</a></p>
+</main>
+</body>
+</html>

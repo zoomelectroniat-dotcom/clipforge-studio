@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+jinja2
+python-multipart
+httpx
+bcrypt
+yt-dlp
+cryptography  # Fernet encryption for stored OAuth tokens
+# PINNED to 4.x: opencv 5.x removed the Caffe importer, and the face detector
+# used for smart reframe is a Caffe-format model (res10 SSD).
+opencv-python-headless==4.10.0.84

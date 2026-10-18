@@ -1,0 +1,15 @@
+# Secrets & local state — never commit
+.env
+*.db
+*.sqlite3
+
+# Runtime junk
+__pycache__/
+*.pyc
+venv/
+data/
+uploads/
+renders/
+media/
+e2e/
+.DS_Store

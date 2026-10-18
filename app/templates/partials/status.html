@@ -1,0 +1,13 @@
+<div id="pipeline-status"
+     {% if not done %}hx-get="/app/projects/{{ pid }}/status-partial" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+  <div class="c-card">
+    <p><strong>{{ stage }}</strong></p>
+    <div class="c-progress" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="Processing progress">
+      <div class="fill" style="width: {{ pct }}%"></div>
+    </div>
+    <p class="muted mt-8">{{ pct }}% complete</p>
+    {% if done %}
+    <p><a class="c-btn primary" href="/app/projects/{{ pid }}">View your clips</a></p>
+    {% endif %}
+  </div>
+</div>

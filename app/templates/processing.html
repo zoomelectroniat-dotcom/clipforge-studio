@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Processing — {{ project.title }} — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">Cutting your clips</h1>
+<p class="muted">{{ project.title }} — this usually takes a few minutes. You can leave; your clips will be here.</p>
+<div class="mt-16"
+     hx-get="/app/projects/{{ project.id }}/status-partial" hx-trigger="load" hx-swap="outerHTML">
+  <div class="c-card"><div class="c-skeleton" style="height:18px"></div><p class="muted">Starting…</p></div>
+</div>
+<label class="c-switch mt-16"><input type="checkbox" checked disabled><span class="track" aria-hidden="true"></span> Notify me in-app when done</label>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% from "macros.html" import virality_badge %}
+{% block title %}{{ clip.title }} — editor — ClipForge Studio{% endblock %}
+{% block content %}
+<div class="c-content wide">
+<p class="muted"><a href="/app/projects/{{ project.id }}">← All clips</a></p>
+<h1 class="page-title" id="clip-title">{{ clip.title }}</h1>
+<div class="c-editor">
+  <div>
+    {% if clip.preview_path %}
+    <video class="preview" id="preview-video" controls preload="metadata" src="/media/clips/{{ clip.id }}/preview.mp4" aria-label="Clip preview"></video>
+    {% else %}
+    <div class="c-card"><div class="c-skeleton" style="height:320px"></div><p class="muted">Preview is rendering…</p></div>
+    {% endif %}
+    <div class="c-timeline mt-16">
+      <label for="seek">Preview position</label>
+      <input type="range" id="seek" min="0" max="{{ (clip.trim_end_ms or clip.duration_ms) - clip.trim_start_ms }}" step="100" value="0" aria-label="Clip position in milliseconds">
+      <p class="muted mono" id="time-readout">0:00 / {{ fmt_dur((clip.trim_end_ms or clip.duration_ms) - clip.trim_start_ms) }}</p>
+    </div>
+    <div class="score-breakdown" aria-label="Score breakdown">
+      <div class="cell"><div class="v">{{ breakdown.hook or '–' }}</div><div class="k">Hook</div></div>
+      <div class="cell"><div class="v">{{ breakdown.flow or '–' }}</div><div class="k">Flow</div></div>
+      <div class="cell"><div class="v">{{ breakdown.value or '–' }}</div><div class="k">Value</div></div>
+    </div>
+    <p class="mt-8">{{ virality_badge(clip.virality_score or 0) }} <span class="muted">overall virality</span></p>
+  </div>
+  <div>
+    <div class="c-tabs" role="tablist" aria-label="Editor panels">
+      <button type="button" role="tab" aria-selected="true" class="is-active" data-tab="t-captions">Captions</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="t-trim">Trim &amp; layout</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="t-export">Export</button>
+    </div>
+    <div id="t-captions" role="tabpanel">
+      <p class="muted">Click a line to jump the preview there. Click the text to fix it.</p>
+      <ul class="c-transcript" id="transcript">
+        {% for cap in clip.captions %}
+        <li>
+          <button type="button" class="row" data-ms="{{ cap.start_ms - clip.trim_start_ms }}">
+            <span class="tc">{{ fmt_dur(cap.start_ms - clip.trim_start_ms) }}</span>
+            {% if cap.speaker_label %}<span class="c-speaker-tag">{{ cap.speaker_label }}</span>{% endif %}
+            <span class="c-caption" data-cap-id="{{ cap.id }}" data-text="{{ cap.text|e }}">{% if cap.is_keyword %}<span class="kw">{{ cap.text }}</span>{% else %}{{ cap.text }}{% endif %}</span>
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div id="t-trim" role="tabpanel" hidden>
+      <form id="trim-form">
+        <div class="c-row">
+          <div class="c-field"><label for="trim-s">Start (seconds)</label>
+            <input id="trim-s" type="number" step="0.1" min="0" value="{{ '%.1f' % (clip.trim_start_ms/1000) }}"></div>
+          <div class="c-field"><label for="trim-e">End (seconds)</label>
+            <input id="trim-e" type="number" step="0.1" min="0.5" value="{{ '%.1f' % ((clip.trim_end_ms or clip.duration_ms)/1000) }}"></div>
+        </div>
+        <div class="c-field">
+          <label>Drag on the timeline</label>
+          <div class="c-trim-timeline" id="trim-timeline">
+            <div class="track"></div>
+            <div class="selection" id="trim-selection"></div>
+            <input type="range" id="trim-s-range" min="0" max="{{ clip.duration_ms }}" step="100"
+                   value="{{ clip.trim_start_ms }}" aria-label="Trim start in milliseconds">
+            <input type="range" id="trim-e-range" min="0" max="{{ clip.duration_ms }}" step="100"
+                   value="{{ clip.trim_end_ms or clip.duration_ms }}" aria-label="Trim end in milliseconds">
+          </div>
+          <p class="muted mono" id="trim-range-readout" role="status"></p>
+        </div>
+        <div class="c-field"><label for="layout">Reframe layout</label>
+          <select id="layout">
+            {% for l in ['fill','fit','split'] %}
+            <option value="{{ l }}" {% if clip.layout==l %}selected{% endif %}>{{ l.title() }} — {% if l=='fill' %}crop to fill 9:16{% elif l=='fit' %}fit with padding{% else %}blurred background{% endif %}</option>
+            {% endfor %}
+          </select></div>
+        <div class="c-field"><label class="c-switch"><input type="checkbox" id="pref-uppercase" {% if prefs.uppercase %}checked{% endif %}><span class="track" aria-hidden="true"></span> UPPERCASE captions</label></div>
+        <div class="c-field"><label class="c-switch"><input type="checkbox" id="pref-emoji" {% if prefs.emoji %}checked{% endif %}><span class="track" aria-hidden="true"></span> ✨ emoji on keywords</label></div>
+        <button class="c-btn primary" type="submit">Apply &amp; re-render preview</button>
+        <p class="muted mt-8" id="trim-status" role="status"></p>
+      </form>
+    </div>
+    <div id="t-export" role="tabpanel" hidden>
+      <p>Render the final 1080p file with your current trim, layout and caption style.</p>
+      <form method="post" action="/app/clips/{{ clip.id }}/render">
+        <button class="c-btn primary" type="submit">Render final clip</button>
+      </form>
+      <p class="mt-16"><a href="/app/clips/{{ clip.id }}/export">Go to export page →</a></p>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  var video = document.getElementById('preview-video');
+  var seek = document.getElementById('seek');
+  var readout = document.getElementById('time-readout');
+  function fmt(ms){ var s = Math.floor(ms/1000); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+  if (video) {
+    video.addEventListener('timeupdate', function(){
+      if (!seek.matches(':active')) seek.value = Math.floor(video.currentTime * 1000);
+      readout.textContent = fmt(video.currentTime*1000) + ' / ' + fmt({{ (clip.trim_end_ms or clip.duration_ms) - clip.trim_start_ms }});
+      document.querySelectorAll('#transcript .row').forEach(function(r){
+        var ms = parseInt(r.dataset.ms, 10);
+        r.classList.toggle('is-active', video.currentTime*1000 >= ms && video.currentTime*1000 < ms + 4000);
+      });
+    });
+    seek.addEventListener('input', function(){ video.currentTime = seek.value/1000; });
+  }
+  document.querySelectorAll('#transcript .row').forEach(function(r){
+    r.addEventListener('click', function(e){
+      if (e.target.closest('.c-caption[contenteditable="true"]')) return;
+      if (video) { video.currentTime = parseInt(r.dataset.ms,10)/1000; video.play(); }
+    });
+  });
+  // inline caption editing
+  document.querySelectorAll('.c-caption').forEach(function(cap){
+    cap.addEventListener('click', function(e){
+      e.stopPropagation();
+      if (cap.isContentEditable) return;
+      cap.contentEditable = 'true'; cap.focus();
+      document.execCommand && document.execCommand('selectAll', false, null);
+    });
+    cap.addEventListener('keydown', function(e){
+      if (e.key === 'Enter') { e.preventDefault(); cap.blur(); }
+      if (e.key === 'Escape') { cap.textContent = cap.dataset.text; cap.blur(); }
+    });
+    cap.addEventListener('blur', function(){
+      cap.contentEditable = 'false';
+      var txt = cap.textContent.trim();
+      if (txt && txt !== cap.dataset.text) {
+        fetch('/app/captions/' + cap.dataset.capId, {
+          method: 'PATCH', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({text: txt})
+        }).then(function(r){ return r.json(); }).then(function(){
+          cap.dataset.text = txt;
+          var dot = document.createElement('span');
+          dot.className = 'edited-dot'; dot.textContent = ' ●'; dot.title = 'edited';
+          cap.appendChild(dot);
+        });
+      } else { cap.textContent = cap.dataset.text; }
+    });
+  });
+  // tabs
+  document.querySelectorAll('.c-tabs [data-tab]').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.c-tabs [data-tab]').forEach(function(x){ x.classList.remove('is-active'); x.setAttribute('aria-selected','false'); });
+      t.classList.add('is-active'); t.setAttribute('aria-selected','true');
+      ['t-captions','t-trim','t-export'].forEach(function(id){ document.getElementById(id).hidden = id !== t.dataset.tab; });
+    });
+  });
+  // dual-handle trim timeline (synced with the number inputs; server still validates)
+  (function(){
+    var sNum = document.getElementById('trim-s'), eNum = document.getElementById('trim-e');
+    var sR = document.getElementById('trim-s-range'), eR = document.getElementById('trim-e-range');
+    var sel = document.getElementById('trim-selection'), ro = document.getElementById('trim-range-readout');
+    if (!sR || !eR) return;
+    var DUR = parseInt(sR.max, 10);
+    function paint(){
+      var s = parseInt(sR.value, 10), e = parseInt(eR.value, 10);
+      sel.style.left = (s / DUR * 100) + '%';
+      sel.style.width = (Math.max(0, e - s) / DUR * 100) + '%';
+      ro.textContent = fmt(s) + ' → ' + fmt(e) + '  (' + ((e - s) / 1000).toFixed(1) + 's selected)';
+    }
+    function fromRanges(){
+      var s = Math.min(parseInt(sR.value, 10), parseInt(eR.value, 10) - 500);
+      var e = Math.max(parseInt(eR.value, 10), parseInt(sR.value, 10) + 500);
+      sR.value = s; eR.value = e;
+      sNum.value = (s / 1000).toFixed(1); eNum.value = (e / 1000).toFixed(1);
+      paint();
+    }
+    function fromNums(){
+      var s = Math.round(parseFloat(sNum.value || 0) * 1000);
+      var e = Math.round(parseFloat(eNum.value || 0) * 1000);
+      if (isNaN(s) || s < 0) s = 0;
+      if (isNaN(e) || e <= s + 500) e = Math.min(DUR, s + 500);
+      if (e > DUR) e = DUR;
+      sR.value = s; eR.value = e;
+      paint();
+    }
+    sR.addEventListener('input', fromRanges);
+    eR.addEventListener('input', fromRanges);
+    sNum.addEventListener('input', fromNums);
+    eNum.addEventListener('input', fromNums);
+    paint();
+  })();
+  // trim + layout + prefs
+  document.getElementById('trim-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var st = document.getElementById('trim-status');
+    st.textContent = 'Saving…';
+    fetch('/app/clips/{{ clip.id }}', {
+      method: 'PATCH', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        trim_start_ms: Math.round(parseFloat(document.getElementById('trim-s').value) * 1000),
+        trim_end_ms: Math.round(parseFloat(document.getElementById('trim-e').value) * 1000),
+        layout: document.getElementById('layout').value,
+        render_prefs: {
+          uppercase: document.getElementById('pref-uppercase').checked,
+          emoji: document.getElementById('pref-emoji').checked
+        }
+      })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      st.textContent = d.re_rendering ? 'Saved — preview is re-rendering, refresh in a bit.' : 'Saved.';
+      if (d.re_rendering) setTimeout(function(){ location.reload(); }, 12000);
+    }).catch(function(){ st.textContent = 'Save failed.'; });
+  });
+})();
+</script>
+{% endblock %}

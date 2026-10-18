@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Export — {{ clip.title }} — ClipForge Studio{% endblock %}
+{% block content %}
+<p class="muted"><a href="/app/clips/{{ clip.id }}/edit">← Back to editor</a></p>
+<h1 class="page-title">Export</h1>
+<div class="c-card">
+  <h3>{{ clip.title }}</h3>
+  {% if clip.status == 'ready' and clip.output_path %}
+    <p class="c-error" style="color:var(--color-success)">✓ Final 1080p render is ready.</p>
+    <p><a class="c-btn primary" href="/app/clips/{{ clip.id }}/download">Download MP4 (1080p)</a></p>
+    {% if srt_path %}
+    <p class="mt-8"><a class="c-btn secondary" href="/app/clips/{{ clip.id }}/captions.srt">Download captions (.srt)</a></p>
+    {% endif %}
+  {% elif clip.status == 'rendering' or (job and job.status in ('queued','running')) %}
+    <p>Rendering your final clip…</p>
+    <div class="c-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ job.progress_pct if job else 0 }}" aria-label="Render progress">
+      <div class="fill" style="width: {{ job.progress_pct if job else 0 }}%"></div>
+    </div>
+    <p class="muted">{{ job.stage if job else '' }}</p>
+    <meta http-equiv="refresh" content="4">
+  {% else %}
+    <p class="muted">No final render yet. Render from the editor when your trim and captions look right.</p>
+    <form method="post" action="/app/clips/{{ clip.id }}/render"><button class="c-btn primary" type="submit">Render final clip</button></form>
+  {% endif %}
+</div>
+{% endblock %}

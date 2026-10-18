@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Billing — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">Billing &amp; credits</h1>
+{% if notice %}<div class="c-error-banner" role="alert"><div>{{ notice }}</div></div>{% endif %}
+<div class="c-grid cols-2">
+  <div class="c-card"><h3>Current plan</h3>
+    <p style="font-size:var(--type-xl-size);font-weight:700;text-transform:capitalize">{{ user.plan_tier }}</p>
+    <p class="muted">{{ user.credits_balance }} credits left · 1 credit = 1 minute of source video</p>
+    <p><a class="c-btn secondary" href="/pricing">Compare plans</a></p></div>
+  <div class="c-card"><h3>How credits work</h3>
+    <p class="muted">Generating clips charges the source video's length in minutes, once per run. Failed runs are refunded automatically. Card checkout activates once the site owner connects Stripe.</p></div>
+</div>
+<h2 class="mt-24">Ledger</h2>
+<table class="c-table"><thead><tr><th>When</th><th>Change</th><th>Reason</th></tr></thead><tbody>
+{% for e in ledger %}
+<tr><td class="mono">{{ fmt_dt(e.created_at) }}</td>
+    <td style="color:{% if e.delta >= 0 %}var(--color-success){% else %}var(--color-danger){% endif %}">{{ '%+d' % e.delta }}</td>
+    <td>{{ e.reason }}</td></tr>
+{% else %}
+<tr><td colspan="3" class="muted">No movements yet.</td></tr>
+{% endfor %}
+</tbody></table>
+{% endblock %}

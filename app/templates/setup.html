@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Set up — {{ project.title }} — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">How should the AI cut this?</h1>
+<p class="muted">{{ project.title }} · {% if project.duration_sec %}<span class="mono">{{ fmt_dur(project.duration_sec * 1000) }}</span> of video{% endif %} · costs <strong>{{ ((project.duration_sec or 60) + 59) // 60 }} credits</strong> (you have {{ user.credits_balance }})</p>
+{% if error %}{% from "macros.html" import error_banner %}{{ error_banner(error) }}{% endif %}
+<form method="post" action="/app/projects/{{ project.id }}/generate" class="mt-16">
+  <div class="c-card mb-16">
+    <h3>Clip length</h3>
+    <div class="c-row">
+      <div class="c-field"><label for="s-min">Min seconds</label>
+        <input id="s-min" name="clip_length_min" type="number" min="5" max="120" value="{{ prefs.clip_length_min or 15 }}"></div>
+      <div class="c-field"><label for="s-max">Max seconds</label>
+        <input id="s-max" name="clip_length_max" type="number" min="10" max="180" value="{{ prefs.clip_length_max or 60 }}"></div>
+    </div>
+  </div>
+  <div class="c-card mb-16">
+    <h3>Content</h3>
+    <div class="c-row">
+      <div class="c-field"><label for="s-genre">Genre</label>
+        <select id="s-genre" name="genre">
+          {% for g in ['podcast','vlog','sports','talking-head','presentation'] %}
+          <option value="{{ g }}" {% if prefs.genre == g %}selected{% endif %}>{{ g.replace('-',' ').title() }}</option>
+          {% endfor %}
+        </select></div>
+      <div class="c-field"><label for="s-lang">Language</label>
+        <select id="s-lang" name="language">
+          {% for code, name in [('en','English'),('es','Spanish'),('pt','Portuguese'),('ur','Urdu'),('hi','Hindi'),('ar','Arabic')] %}
+          <option value="{{ code }}" {% if (prefs.language or project.language) == code %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select></div>
+    </div>
+    <div class="c-field"><label for="s-kw">Keywords — steer the AI toward topics (comma separated)</label>
+      <input id="s-kw" name="keywords" type="text" value="{{ (prefs.keywords or [])|join(', ') }}" placeholder="pricing, launch story, mistakes">
+      <div class="hint">Optional. Moments matching these get priority.</div></div>
+    <div class="c-field"><label for="s-prompt">Direct the AI in your own words</label>
+      <textarea id="s-prompt" name="prompt" placeholder="Find moments where the speaker gives actionable pricing advice…">{{ prefs.prompt or '' }}</textarea></div>
+    <label class="c-switch"><input type="checkbox" name="ai_hook" value="1" {% if prefs.ai_hook %}checked{% endif %}><span class="track" aria-hidden="true"></span> AI-generated opening hook for each clip</label>
+    <label class="c-switch"><input type="checkbox" name="smart_reframe" value="1" {% if prefs.smart_reframe|default(true) %}checked{% endif %}><span class="track" aria-hidden="true"></span> Smart reframe — follow the speaker instead of centre-cropping</label>
+  </div>
+  <div class="c-card mb-16">
+    <h3>Brand kit</h3>
+    <div class="c-field"><label for="s-tpl">Caption style preset</label>
+      <select id="s-tpl" name="brand_template_id">
+        {% for t in templates_list %}
+        <option value="{{ t.id }}" {% if project.brand_template_id == t.id %}selected{% endif %}>{{ t.name }} ({{ t.aspect_ratio }})</option>
+        {% endfor %}
+      </select>
+      <div class="hint"><a href="/app/brand-templates">Manage brand kits</a></div></div>
+  </div>
+  <button class="c-btn primary lg" type="submit">Generate clips</button>
+  <a class="c-btn ghost" href="/app">Cancel</a>
+</form>
+{% endblock %}

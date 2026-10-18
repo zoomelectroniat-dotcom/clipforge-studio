@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Home — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">Your projects</h1>
+{% if not projects %}
+{% from "macros.html" import empty_state %}
+{{ empty_state("No projects yet", "Import your first video and the AI will cut it into scored clips.", "/app/projects/new", "New project") }}
+{% else %}
+<p class="mb-16"><a class="c-btn primary" href="/app/projects/new">+ New project</a></p>
+<div class="c-grid cols-3">
+{% for p in projects %}
+<a class="c-card c-clipcard hoverable" href="{% if p.status == 'ready' %}/app/projects/{{ p.id }}{% elif p.status == 'processing' %}/app/projects/{{ p.id }}/processing{% else %}/app/projects/{{ p.id }}/setup{% endif %}">
+  <div class="body">
+    <p class="title">{{ p.title }}</p>
+    <div class="meta">
+      <span class="c-virality tier-{{ 'low' if p.status=='failed' else 'mid' }}">{{ p.status }}</span>
+      {% if p.duration_sec %}<span class="mono">{{ fmt_dur(p.duration_sec * 1000) }}</span>{% endif %}
+      <span class="muted">{{ fmt_dt(p.created_at) }}</span>
+    </div>
+  </div>
+</a>
+{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

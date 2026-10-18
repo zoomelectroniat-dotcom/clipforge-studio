@@ -1,0 +1,30 @@
+# Render blueprint for the ClipForge Studio TEST deploy (free tier, Docker).
+# Usage: Render dashboard -> New -> Blueprint -> point at the clipforge-studio
+# GitHub repo. Or create the Web Service manually with the same settings.
+services:
+  - type: web
+    name: clipforge-studio
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /
+    # Render injects $PORT automatically; start.sh listens on it.
+    envVars:
+      - key: APP_URL
+        sync: false # set in dashboard after deploy, e.g. https://clipforge-studio.onrender.com
+      - key: GROQ_API_KEY
+        sync: false # AI transcription + highlight/virality scoring; without it those steps use the offline stub
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false # MUST be https://<your-app>.onrender.com/auth/google/callback after deploy
+      - key: SMTP_HOST
+        sync: false # optional: completion emails
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "macros.html" import empty_state %}
+{% block title %}Analytics — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">Analytics</h1>
+<p class="muted">Clips per project and score distribution. Per-platform performance ships with social posting in phase 2.</p>
+{% if not by_project %}
+{{ empty_state("No data yet", "Generate clips from a project and they will show up here.", "/app/projects/new", "New project") }}
+{% else %}
+{% for project, clips in by_project.items() %}
+<div class="c-card mb-16">
+  <h3>{{ project.title }}</h3>
+  <p class="muted">{{ clips|length }} clips ·
+    avg score {{ '%.0f' % ((clips|map(attribute='virality_score')|select|sum) / ([1, clips|length]|max)) if clips else 0 }}</p>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

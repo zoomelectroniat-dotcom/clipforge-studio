@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign up — ClipForge Studio</title>
+<link rel="stylesheet" href="/static/css/tokens.css">
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<nav class="c-topnav"><a class="brand" href="/">ClipForge Studio</a>
+<div class="links"><a href="/login">Sign in</a></div></nav>
+<main class="c-content" style="max-width:480px">
+  <h1 class="page-title">Create your account</h1>
+  <p class="muted">60 free credits, no card required.</p>
+  {% if error %}<div class="c-error-banner" role="alert"><div>{{ error }}</div></div>{% endif %}
+  <form method="post" action="/auth/signup" class="mt-16">
+    <div class="c-field"><label for="su-name">Display name</label>
+      <input id="su-name" name="display_name" type="text" autocomplete="nickname"></div>
+    <div class="c-field"><label for="su-email">Email</label>
+      <input id="su-email" name="email" type="email" required autocomplete="email"></div>
+    <div class="c-field"><label for="su-pass">Password</label>
+      <input id="su-pass" name="password" type="password" required minlength="8" autocomplete="new-password">
+      <div class="hint">At least 8 characters.</div></div>
+    <button class="c-btn primary block lg" type="submit">Sign up</button>
+  </form>
+  <p class="muted mt-16">Already have an account? <a href="/login">Sign in</a></p>
+</main>
+</body>
+</html>

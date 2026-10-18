@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "macros.html" import empty_state %}
+{% block title %}Scheduler — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">Scheduled posts</h1>
+<p class="muted">Queue clips for later. Actual posting to networks ships in phase 2 — the queue, dedupe and timing are live now.</p>
+{% if not posts %}
+{{ empty_state("Nothing scheduled", "Open a clip in the editor, switch to the Export tab and queue it — or connect a social account first.", "/app/social", "Connect accounts") }}
+{% else %}
+<table class="c-table"><thead><tr><th>When (UTC)</th><th>Clip</th><th>Status</th><th>Caption</th></tr></thead><tbody>
+{% for p in posts %}
+<tr><td class="mono">{{ fmt_dt(p.scheduled_at) }}</td><td>{{ p.clip_id[:8] }}…</td><td>{{ p.status }}</td><td>{{ p.caption_text[:60] }}</td></tr>
+{% endfor %}
+</tbody></table>
+{% endif %}
+{% endblock %}

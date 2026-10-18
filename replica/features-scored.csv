@@ -1,0 +1,51 @@
+feature,area,priority,original,clone,notes
+Sign up / sign in with Google or email,onboarding,must,yes,partial,"2026-10-18: full Google OAuth 2.0 code flow implemented (login button, callback, find-or-create user, Drive tokens stored encrypted, 10 e2e tests incl. friendly no-500 errors when unconfigured). Stays partial: needs the site owner's Google Cloud credentials pasted into env."
+Dashboard with project list and credit balance,onboarding,must,yes,yes,DIFF 2026-10-17: tested; credits shown on dashboard (HTTP 200)
+Import video: file upload with progress,import,must,yes,yes,plan caps differ (10 GB free/starter | DIFF 2026-10-17: tested F01; XHR progress bar; build e2e uploaded 90s MP4
+Import video: YouTube URL,import,must,yes,yes,GAP 2026-10-17: yt-dlp installed (2026.08.19) + wired in fetch stage; friendly errors for private/deleted/login-walled videos; noplaylist guard
+Import video: cloud/source links (Drive/Dropbox/Zoom/Loom/Twitch/Rumble/Vimeo/StreamYard/S3 MP4),import,must,yes,yes,"2026-10-18: Drive import implemented — public 'anyone with the link' files download with NO credentials (uc?export=download + confirm-token handling); private files via Drive API with the user's connected Google account (Settings page, tokens Fernet-encrypted). URL shapes parsed + unit-tested; friendly errors for folders/private-without-connection. YouTube/Vimeo/Twitch via yt-dlp, direct MP4 fetch, all live-tested earlier."
+Clip length range setting,curation,must,yes,yes,DIFF 2026-10-17: setup fields clip_length_min/max; build e2e
+Genre selection (podcast/vlog/sports/talking-head/presentation),curation,must,yes,yes,DIFF 2026-10-17: setup genre field; build e2e
+Language selection,curation,must,yes,yes,DIFF 2026-10-17: setup/new-project language field; tested
+Keyword-directed clipping,curation,must,yes,yes,DIFF 2026-10-17: keywords field + keyword highlight in caption burn-in (video.py)
+Natural-language prompt clipping,curation,must,yes,yes,rebuild behavior with own LLM; weights not takable | DIFF 2026-10-17: prompt field wired to LLM curation
+AI auto highlight detection,curation,must,yes,yes,DIFF 2026-10-17: real Groq gpt-oss-120b; 3 scored clips in DB (82/74/69)
+Virality score 0-100 per clip,scoring,must,yes,yes,"rebuild with own hook/flow/value rubric | DIFF 2026-10-17: scores in DB, shown in gallery"
+Score explanation (hook/flow/value breakdown),scoring,must,yes,yes,DIFF 2026-10-17: breakdown displayed in editor; stored per clip
+Clip gallery cards (thumbnail/title/duration/score),clips,must,yes,yes,DIFF 2026-10-17: gallery page; build e2e verified
+Processing progress bar with ETA + email on completion,processing,must,yes,yes,GAP 2026-10-17: completion/failure email via configurable SMTP (mailer.py; no-op when SMTP_HOST unset); .env.example documents vars
+Clip editor: preview player + segment timeline,editor,must,yes,yes,DIFF 2026-10-17: preview.mp4 served; seek slider; tested
+Clip editor: transcript panel with click-text-to-edit,editor,must,yes,yes,DIFF 2026-10-17: caption rows + contenteditable; PATCH tested (F02-H2)
+Clip editor: inline caption correction,editor,must,yes,yes,DIFF 2026-10-17: PATCH /app/captions tested (F02-H2)
+Clip editor: trim via timeline or text selection,editor,must,yes,yes,"GAP 2026-10-17: dual-handle timeline scrubber added (synced with time inputs, server still validates); text-select trim still pending"
+Auto word-timed captions,captions,must,yes,yes,DIFF 2026-10-17: word_timings in DB; karaoke burn-in via FFmpeg
+Animated/karaoke caption style,captions,must,yes,yes,DIFF 2026-10-17: burn-in tested; style prefs in editor
+Keyword highlights and emoji in captions,captions,must,yes,yes,DIFF 2026-10-17: implemented in video.py (colored override + emoji)
+Auto reframe to 9:16 with speaker tracking,reframe,must,yes,yes,"Face-tracked reframe LIVE 2026-10-18: OpenCV DNN res10 SSD, 1s samples, EMA-smoothed trajectory + deadband; multi-speaker union framing or largest-face follow; centre-crop fallback. TESTED: 6s pan video, face 848->542px, crop travelled 182px, 1080x1920 render OK. Honest limit: tracks faces, not true active speakers (no diarization)."
+Fill/Fit/Split reframe layouts,reframe,must,yes,yes,DIFF 2026-10-17: layout select in editor; PATCH re-render tested
+MP4 1080p download,export,must,yes,yes,DIFF 2026-10-17: downloaded 1080x1920 h264 in build e2e
+SRT caption file download,export,must,yes,yes,DIFF 2026-10-17: tested; edited captions present
+Three/Four/Screenshare/Gameplay layouts,reframe,should,yes,no,DIFF 2026-10-17: schema CHECK has them; no UI; build round 2
+Saved brand templates (1-2 per plan),branding,should,yes,yes,DIFF 2026-10-17: CRUD tested (F03); 2 templates in DB
+Brand template: custom fonts/colors/logo,branding,should,yes,yes,"GAP 2026-10-17: font family (5 verified fonts), caption/keyword colors, logo upload (<=2MB, burned into renders top-right); evil inputs sanitized"
+Brand template: aspect-ratio presets (9:16/1:1/16:9/4:5),branding,should,yes,yes,DIFF 2026-10-17: whitelisted presets in form
+AI-generated opening hook for clips,curation,should,yes,yes,GAP 2026-10-17: ai_hook pref now consumed — one LLM call rewrites all clip titles in detect stage; failure never breaks the run
+AI B-roll insertion in editor,editor,should,yes,no,needs own stock or generated visuals | DIFF 2026-10-17: needs own stock or generated visuals
+Filler-word and pause removal (audio cleaning),editor,should,yes,no,DIFF 2026-10-17: not implemented
+Speaker labels in captions,captions,should,yes,yes,GAP 2026-10-17: populated via pause-heuristic turns (NOT true diarization — Whisper gives none); shown as tags in editor transcript
+Social account OAuth connections,publishing,should,yes,no,per-platform approval needed | DIFF 2026-10-17: explicitly phase 2 per social page
+Schedule posts to social platforms,publishing,should,yes,partial,posting quotas partner-dependent | DIFF 2026-10-17: queue works (3 queued in DB); actual posting phase 2
+Per-video performance analytics,analytics,should,yes,partial,DIFF 2026-10-17: page shows clips/project + avg score from real data; per-platform performance phase 2
+XML export for Premiere/DaVinci,export,should,yes,no,DIFF 2026-10-17: not implemented
+AI voiceover for clips,editor,could,yes,no,DIFF 2026-10-17: not implemented
+Series templates (reusable output style),branding,could,yes,no,DIFF 2026-10-17: not implemented
+4K export,export,could,yes,no,DIFF 2026-10-17: 1080p only
+Multi-user team workspace,team,could,yes,no,out of core-loop slice | DIFF 2026-10-17: out of core-loop slice
+Zapier integration,integrations,could,yes,no,DIFF 2026-10-17: not implemented
+Public API access,api,could,yes,no,out of core-loop slice | DIFF 2026-10-17: /api/v1 status endpoint is internal only; no product API
+MCP server for AI agents,api,could,yes,no,out of core-loop slice | DIFF 2026-10-17: out of core-loop slice
+Virality model training data,ai-model,could,yes,skip,proprietary dataset; rebuild with own scoring rubric
+Licensed stock B-roll catalog,content,could,yes,skip,licensed footage cannot be copied
+Social-platform posting partnerships and quotas,integrations,could,yes,skip,depends on each platform's API approval
+Proprietary model weights (curation/prompt models),ai-model,could,yes,skip,behavior reimplementable; weights not takable
+Brand assets/name/logo/marketing copy,brand,could,yes,skip,identity belongs to original; clone gets own brand

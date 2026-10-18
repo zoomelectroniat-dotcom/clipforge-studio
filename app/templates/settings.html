@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Settings — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">Settings</h1>
+
+<div class="c-card mt-16">
+  <h3>Google Drive</h3>
+  {% if oauth_error == 'oauth-missing' %}
+  <div class="c-error-banner" role="alert"><div>Google sign-in isn't set up on this server yet.</div></div>
+  {% endif %}
+  {% if drive_status == 'connected' %}
+  <p><span class="c-virality tier-high">Connected</span></p>
+  <p class="muted">Private Drive files you own (or that are shared with you) can be imported as project sources.</p>
+  {% elif drive_status == 'expired' %}
+  <p><span class="c-virality tier-low">Connection expired</span></p>
+  <p class="muted">Reconnect below to keep importing private Drive files.</p>
+  <a class="c-btn secondary" href="/app/settings/google-drive">Reconnect Google Drive</a>
+  {% else %}
+  <p class="muted">Not connected. Public "Anyone with the link" Drive files already work without this — connect to import your private files too.</p>
+  {% if google_enabled %}
+  <a class="c-btn secondary" href="/app/settings/google-drive">Connect Google Drive</a>
+  {% else %}
+  <p class="muted">Google sign-in isn't set up on this server yet.</p>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

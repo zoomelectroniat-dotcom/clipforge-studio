@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Brand kits — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">Brand kits</h1>
+<p class="muted">Reusable caption styles and aspect ratios. Pick one when you generate clips.</p>
+<div class="c-grid cols-3 mt-16">
+{% for t in templates_list %}
+<div class="c-card">
+  <h3>{{ t.name }}{% if t.is_default %} <span class="c-virality tier-mid">default</span>{% endif %}</h3>
+  <p class="muted">{{ t.aspect_ratio }} · layouts: {{ t.enabled_layouts }}</p>
+  {% if t.logo_path %}<p><img src="/media/logos/{{ t.id }}" alt="Brand logo" style="max-height:40px;max-width:120px"></p>{% endif %}
+  <form method="post" action="/app/brand-templates/{{ t.id }}/delete" onsubmit="return confirm('Delete this brand kit?')">
+    <button class="c-btn danger sm" type="submit">Delete</button>
+  </form>
+</div>
+{% endfor %}
+</div>
+<h2 class="mt-24">New brand kit</h2>
+<form method="post" action="/app/brand-templates" enctype="multipart/form-data" class="c-card mt-8">
+  <div class="c-row">
+    <div class="c-field"><label for="b-name">Name</label><input id="b-name" name="name" type="text" required maxlength="80"></div>
+    <div class="c-field"><label for="b-ar">Aspect ratio</label>
+      <select id="b-ar" name="aspect_ratio">
+        <option value="9:16" selected>9:16 (Shorts/Reels/TikTok)</option>
+        <option value="1:1">1:1 (Feed)</option><option value="16:9">16:9 (YouTube)</option>
+        <option value="4:5">4:5 (Portrait feed)</option>
+      </select></div>
+  </div>
+  <div class="c-field"><label>Reframe layouts</label>
+    <label class="c-switch"><input type="checkbox" name="layouts" value="fill" checked><span class="track" aria-hidden="true"></span> Fill</label>
+    <label class="c-switch"><input type="checkbox" name="layouts" value="fit" checked><span class="track" aria-hidden="true"></span> Fit</label>
+    <label class="c-switch"><input type="checkbox" name="layouts" value="split"><span class="track" aria-hidden="true"></span> Split</label>
+  </div>
+  <div class="c-row">
+    <div class="c-field"><label for="b-fs">Caption font size</label>
+      <input id="b-fs" name="font_size" type="number" min="32" max="120" value="64"></div>
+    <div class="c-field"><label for="b-ff">Caption font</label>
+      <select id="b-ff" name="font_family">
+        <option value="DejaVu Sans" selected>DejaVu Sans</option>
+        <option value="DejaVu Serif">DejaVu Serif</option>
+        <option value="Liberation Sans">Liberation Sans</option>
+        <option value="Liberation Serif">Liberation Serif</option>
+        <option value="Noto Sans">Noto Sans</option>
+      </select></div>
+  </div>
+  <div class="c-row">
+    <div class="c-field"><label for="b-fc">Caption text colour</label>
+      <input id="b-fc" name="font_color" type="color" value="#ffffff"></div>
+    <div class="c-field"><label for="b-kc">Keyword highlight colour</label>
+      <input id="b-kc" name="keyword_color" type="color" value="#0e7a64"></div>
+  </div>
+  <div class="c-field"><label for="b-logo">Logo (PNG/JPG, ≤ 2 MB) — burned into the top-right of renders</label>
+    <input id="b-logo" name="logo" type="file" accept=".png,.jpg,.jpeg,.webp"></div>
+  <div class="c-field"><label class="c-switch"><input type="checkbox" name="uppercase" value="1"><span class="track" aria-hidden="true"></span> UPPERCASE captions</label></div>
+  <div class="c-field"><label class="c-switch"><input type="checkbox" name="emoji" value="1"><span class="track" aria-hidden="true"></span> ✨ emoji on keywords</label></div>
+  <button class="c-btn primary" type="submit">Save brand kit</button>
+</form>
+{% endblock %}

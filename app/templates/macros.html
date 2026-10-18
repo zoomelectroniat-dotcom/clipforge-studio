@@ -1,0 +1,37 @@
+{% macro virality_badge(score) -%}
+{% set tier = virality_tier(score) %}
+<span class="c-virality tier-{{ tier }}" role="img"
+      aria-label="Virality score {{ score }} out of 100, {{ tier }} tier"
+      data-tip="Hook/flow/value scored by AI">{{ score }}</span>
+{%- endmacro %}
+
+{% macro empty_state(title, body, cta_href, cta_label) -%}
+<div class="c-empty">
+  <div class="icon" aria-hidden="true">▣</div>
+  <h2>{{ title }}</h2>
+  <p>{{ body }}</p>
+  {% if cta_href %}<a class="c-btn primary" href="{{ cta_href }}">{{ cta_label }}</a>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro error_banner(msg) -%}
+<div class="c-error-banner" role="alert"><div><strong>Something went wrong.</strong><div>{{ msg }}</div></div></div>
+{%- endmacro %}
+
+{% macro clip_card(clip) -%}
+<a class="c-card c-clipcard hoverable" href="/app/clips/{{ clip.id }}/edit">
+  {% if clip.thumbnail_path %}
+  <img class="thumb" src="/media/clips/{{ clip.id }}/thumb.jpg" alt="Thumbnail for {{ clip.title }}">
+  {% else %}
+  <div class="thumb" style="aspect-ratio:9/16;background:var(--color-ink);display:flex;align-items:center;justify-content:center;color:var(--color-on-ink-muted)">…</div>
+  {% endif %}
+  <div class="body">
+    <p class="title">{{ clip.title }}</p>
+    <div class="meta">
+      {{ virality_badge(clip.virality_score or 0) }}
+      <span class="mono">{{ fmt_dur((clip.trim_end_ms or clip.duration_ms) - clip.trim_start_ms) }}</span>
+      <span>{{ clip.layout }}</span>
+    </div>
+  </div>
+</a>
+{%- endmacro %}

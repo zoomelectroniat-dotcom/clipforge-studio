@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}New project — ClipForge Studio{% endblock %}
+{% block content %}
+<h1 class="page-title">New project</h1>
+<p class="muted">Bring in the source video. MP4, MOV, WebM or MKV up to 10 GB — or paste a link.</p>
+{% if error %}{% from "macros.html" import error_banner %}{{ error_banner(error) }}{% endif %}
+<form id="upload-form" method="post" action="/app/projects" enctype="multipart/form-data" class="mt-16">
+  <div class="c-field"><label for="np-title">Project title</label>
+    <input id="np-title" name="title" type="text" placeholder="e.g. Weekly podcast ep 42" maxlength="120"></div>
+  <div class="c-tabs" role="tablist" aria-label="Source type">
+    <button type="button" role="tab" aria-selected="true" data-kind="file" class="is-active">Upload file</button>
+    <button type="button" role="tab" aria-selected="false" data-kind="url">Paste link</button>
+  </div>
+  <input type="hidden" name="source_kind" id="source_kind" value="file">
+  <div id="pane-file">
+    <div class="c-dropzone" id="dropzone">
+      <input type="file" name="file" id="file-input" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,.mp4,.mov,.webm,.mkv,.m4v" aria-describedby="dz-help">
+      <p><strong>Drop your video here</strong> or click to browse</p>
+      <p class="muted" id="dz-help">MP4 · MOV · WebM · MKV — up to 10 GB</p>
+      <p id="file-name" class="muted"></p>
+    </div>
+    <div class="mt-16" id="upload-progress" hidden>
+      <div class="c-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Upload progress"><div class="fill" style="width:0%"></div></div>
+      <p class="muted mt-8" id="upload-label">Uploading…</p>
+    </div>
+  </div>
+  <div id="pane-url" hidden>
+    <div class="c-field"><label for="np-url">Video link</label>
+      <input id="np-url" name="source_url" type="url" placeholder="https://www.youtube.com/watch?v=…">
+      <div class="hint">YouTube, Vimeo, direct MP4 links and most social video URLs work.</div></div>
+  </div>
+  <div class="c-row mt-16">
+    <div class="c-field"><label for="np-lang">Spoken language</label>
+      <select id="np-lang" name="language">
+        <option value="en" selected>English</option><option value="es">Spanish</option>
+        <option value="pt">Portuguese</option><option value="ur">Urdu</option>
+        <option value="hi">Hindi</option><option value="ar">Arabic</option>
+      </select></div>
+  </div>
+  <button class="c-btn primary lg" type="submit" id="submit-btn">Continue</button>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  var tabs = document.querySelectorAll('.c-tabs [data-kind]');
+  var kind = document.getElementById('source_kind');
+  var paneFile = document.getElementById('pane-file');
+  var paneUrl = document.getElementById('pane-url');
+  tabs.forEach(function(t){ t.addEventListener('click', function(){
+    tabs.forEach(function(x){ x.classList.remove('is-active'); x.setAttribute('aria-selected','false'); });
+    t.classList.add('is-active'); t.setAttribute('aria-selected','true');
+    kind.value = t.dataset.kind;
+    paneFile.hidden = kind.value !== 'file';
+    paneUrl.hidden = kind.value !== 'url';
+  });});
+  var dz = document.getElementById('dropzone');
+  var fi = document.getElementById('file-input');
+  var fn = document.getElementById('file-name');
+  ['dragover','dragenter'].forEach(function(e){ dz.addEventListener(e, function(ev){ ev.preventDefault(); dz.classList.add('dragover'); }); });
+  ['dragleave','drop'].forEach(function(e){ dz.addEventListener(e, function(ev){ ev.preventDefault(); dz.classList.remove('dragover'); }); });
+  fi.addEventListener('change', function(){ if (fi.files[0]) fn.textContent = fi.files[0].name + ' (' + Math.round(fi.files[0].size/1048576) + ' MB)'; });
+  var form = document.getElementById('upload-form');
+  form.addEventListener('submit', function(ev){
+    if (kind.value !== 'file' || !fi.files[0]) return; // normal submit for URL or empty
+    ev.preventDefault();
+    var bar = document.getElementById('upload-progress');
+    var fill = bar.querySelector('.fill');
+    var label = document.getElementById('upload-label');
+    bar.hidden = false;
+    document.getElementById('submit-btn').disabled = true;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', form.action);
+    xhr.upload.addEventListener('progress', function(e){
+      if (e.lengthComputable) {
+        var pct = Math.round(e.loaded / e.total * 100);
+        fill.style.width = pct + '%';
+        bar.querySelector('.c-progress').setAttribute('aria-valuenow', pct);
+        label.textContent = 'Uploading… ' + pct + '%';
+      }
+    });
+    xhr.addEventListener('load', function(){
+      if (xhr.status >= 200 && xhr.status < 400 && xhr.responseURL) { window.location = xhr.responseURL; }
+      else { label.textContent = 'Upload failed — please try again.'; document.getElementById('submit-btn').disabled = false; }
+    });
+    xhr.addEventListener('error', function(){ label.textContent = 'Upload failed — please try again.'; document.getElementById('submit-btn').disabled = false; });
+    xhr.send(new FormData(form));
+  });
+})();
+</script>
+{% endblock %}
