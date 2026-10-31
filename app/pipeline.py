@@ -119,7 +119,17 @@ def _fetch_remote(project: Project, db: Session, job: RenderJob) -> str:
             "outtmpl": str(dest), "quiet": True, "no_warnings": True,
             "noplaylist": True,  # a playlist/pasted channel URL must not pull dozens of videos
             "max_filesize": 10 * 1024 * 1024 * 1024}
+    # Optional per-job cookies.txt (login/age-gated videos): uploaded with the
+    # project, kept only as a temp file outside uploads/renders, used for this
+    # one download, and deleted afterwards whatever the outcome. Contents are
+    # never logged. yt-dlp's "cookiefile" option is the --cookies CLI flag.
+    cookies_path = None
     try:
+        import tempfile
+        cand = pathlib.Path(tempfile.gettempdir()) / f"clipforge-cookies-{project.id}.txt"
+        if cand.exists():
+            cookies_path = cand
+            opts["cookiefile"] = str(cand)
         with yt_dlp.YoutubeDL(opts) as ydl:
             ydl.download([url])
     except Exception as e:  # noqa: BLE001 — map yt-dlp errors to user-friendly ones
@@ -144,6 +154,14 @@ def _fetch_remote(project: Project, db: Session, job: RenderJob) -> str:
                                "the download (common behind corporate proxies) — "
                                "upload the file directly instead.")
         raise RuntimeError(f"Download failed: {msg[:200]}")
+    finally:
+        # Single-use credentials: remove the temp cookies file once the
+        # download attempt is over, success or failure.
+        if cookies_path is not None:
+            try:
+                cookies_path.unlink()
+            except OSError:
+                pass
     for ext in ("mp4", "webm", "mkv", "mov"):
         cand = dest_dir / f"source.{ext}"
         if cand.exists():

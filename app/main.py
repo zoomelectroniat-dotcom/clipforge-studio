@@ -268,6 +268,18 @@ async def create_project(request: Request, db: Session = Depends(get_db)):
             else:
                 project.source_type = "mp4"
             project.status = "uploading"
+            # Optional cookies.txt for login/age-gated videos. Stored only as a
+            # per-job temp file (never in the repo, database, uploads, or
+            # renders); the fetch stage consumes it for this one download and
+            # deletes it afterwards. Contents are never logged.
+            cookies_upload = form.get("cookies_file")
+            if cookies_upload is not None and getattr(cookies_upload, "filename", ""):
+                import tempfile
+                data = await cookies_upload.read()
+                if len(data) > 1024 * 1024:
+                    raise ValueError("Cookies file is too large (max 1 MB).")
+                cpath = pathlib.Path(tempfile.gettempdir()) / f"clipforge-cookies-{project.id}.txt"
+                cpath.write_bytes(data)
         else:
             upload: UploadFile = form.get("file")
             if not upload or not upload.filename:
@@ -293,6 +305,14 @@ async def create_project(request: Request, db: Session = Depends(get_db)):
         db.commit()
     except ValueError as e:
         db.rollback()
+        # Best-effort: do not leave a just-uploaded cookies file behind when
+        # project creation itself failed.
+        try:
+            import tempfile
+            cpath = pathlib.Path(tempfile.gettempdir()) / f"clipforge-cookies-{project.id}.txt"
+            cpath.unlink(missing_ok=True)
+        except OSError:
+            pass
         return page("new_project.html", request, user=user, active="new", error=str(e))
     return RedirectResponse(f"/app/projects/{project.id}/setup", status_code=303)
 
