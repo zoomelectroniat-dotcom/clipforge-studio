@@ -192,8 +192,15 @@ def google_callback(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse("/app/settings", status_code=303)
     # purpose == "login": sign in or create the account for this Google email.
     user = _oauth_user(db, email, info["name"])
-    store_drive_tokens(db, user, tokens)
-    db.commit()
+    db.commit()  # persist the account first: Drive storage must never break sign-in
+    try:
+        store_drive_tokens(db, user, tokens)
+        db.commit()
+    except Exception:
+        # Drive tokens are a bonus (private file imports); a storage failure
+        # must not fail the login itself. Roll back only the Drive row, not
+        # the account — the user can reconnect Drive from settings.
+        db.rollback()
     resp = RedirectResponse("/app", status_code=303)
     resp.set_cookie(COOKIE_NAME, make_session_cookie(user.id),
                     httponly=True, samesite="lax", max_age=30 * 86400)

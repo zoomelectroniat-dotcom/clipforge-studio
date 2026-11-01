@@ -140,7 +140,7 @@ CREATE TABLE social_accounts (
   id                   TEXT PRIMARY KEY,
   user_id              TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   platform             TEXT NOT NULL CHECK (platform IN
-                         ('tiktok','youtube','instagram','facebook','linkedin','x')),
+                         ('tiktok','youtube','instagram','facebook','linkedin','x','google_drive')),
   oauth_status         TEXT NOT NULL DEFAULT 'expired'
                          CHECK (oauth_status IN ('connected','expired')),
   access_token_enc     TEXT,                            -- Fernet-encrypted, never plaintext
