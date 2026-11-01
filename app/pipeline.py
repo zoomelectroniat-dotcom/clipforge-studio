@@ -48,6 +48,67 @@ def _set_progress(db: Session, job: RenderJob, pct: int, stage: str):
 
 
 # ------------------------------------------------------------------ fetch
+_AUTH_BOT_MARKERS = ("sign in to", "log in", "login required", "age gate",
+                     "age restriction", "age-verif", "not a bot", "bot check",
+                     "po_token", "po token")
+
+
+def _is_auth_or_bot_error(msg: str) -> bool:
+    """True when a download failure looks like a login/age/bot gate (the
+    class of failure worth one retry with a different player client)."""
+    low = msg.lower()
+    return any(m in low for m in _AUTH_BOT_MARKERS)
+
+
+def _cookiefile_for_job(project_id: str) -> pathlib.Path | None:
+    """Resolve the cookies file for one download, highest precedence first.
+
+    1. Per-job upload (existing behaviour): temp file written at project
+       creation from the uploading user's own cookies file.
+    2. Server owner cookies file: CLIPFORGE_YT_COOKIES_FILE points at a
+       cookies.txt (intended for a Render Secret File, e.g.
+       /etc/secrets/yt-cookies.txt). Copied to a fresh per-job temp file
+       so the original is never deleted or modified.
+    3. Server owner cookies (base64): CLIPFORGE_YT_COOKIES_B64 holds
+       base64-encoded cookies.txt content. Decoded to a fresh per-job
+       temp file.
+    Returns None when nothing is configured. Cookie content is never
+    logged; oversize or unreadable server cookies are silently ignored
+    (the download then proceeds without cookies, as before).
+    """
+    import base64
+    import os
+    import tempfile
+
+    tmpdir = pathlib.Path(tempfile.gettempdir())
+    per_job = tmpdir / f"clipforge-cookies-{project_id}.txt"
+    if per_job.exists():
+        return per_job
+    server_file = (os.environ.get("CLIPFORGE_YT_COOKIES_FILE") or "").strip()
+    if server_file:
+        try:
+            src = pathlib.Path(server_file)
+            if src.is_file():
+                data = src.read_bytes()
+                if 0 < len(data) <= 1024 * 1024:
+                    dst = tmpdir / f"clipforge-server-cookies-{project_id}.txt"
+                    dst.write_bytes(data)
+                    return dst
+        except OSError:
+            pass
+    b64 = (os.environ.get("CLIPFORGE_YT_COOKIES_B64") or "").strip()
+    if b64:
+        try:
+            data = base64.b64decode(b64, validate=True)
+            if 0 < len(data) <= 1024 * 1024:
+                dst = tmpdir / f"clipforge-server-cookies-{project_id}.txt"
+                dst.write_bytes(data)
+                return dst
+        except Exception:
+            pass
+    return None
+
+
 def stage_fetch(job: RenderJob, db: Session) -> None:
     project = db.get(Project, job.project_id)
     _set_progress(db, job, 5, "Checking source video")
@@ -119,19 +180,32 @@ def _fetch_remote(project: Project, db: Session, job: RenderJob) -> str:
             "outtmpl": str(dest), "quiet": True, "no_warnings": True,
             "noplaylist": True,  # a playlist/pasted channel URL must not pull dozens of videos
             "max_filesize": 10 * 1024 * 1024 * 1024}
-    # Optional per-job cookies.txt (login/age-gated videos): uploaded with the
-    # project, kept only as a temp file outside uploads/renders, used for this
-    # one download, and deleted afterwards whatever the outcome. Contents are
-    # never logged. yt-dlp's "cookiefile" option is the --cookies CLI flag.
+    # Cookies precedence: per-job upload > server owner cookies file
+    # (CLIPFORGE_YT_COOKIES_FILE) > server owner cookies (base64,
+    # CLIPFORGE_YT_COOKIES_B64). Server cookies are copied to a fresh
+    # per-job temp file, used for this one download, and deleted
+    # afterwards; contents are never logged. yt-dlp's "cookiefile"
+    # option is the --cookies CLI flag.
     cookies_path = None
     try:
-        import tempfile
-        cand = pathlib.Path(tempfile.gettempdir()) / f"clipforge-cookies-{project.id}.txt"
-        if cand.exists():
-            cookies_path = cand
-            opts["cookiefile"] = str(cand)
-        with yt_dlp.YoutubeDL(opts) as ydl:
-            ydl.download([url])
+        cookies_path = _cookiefile_for_job(project.id)
+        if cookies_path is not None:
+            opts["cookiefile"] = str(cookies_path)
+        for attempt in range(2):
+            attempt_opts = dict(opts)
+            if attempt == 1:
+                # Automatic fallback for login/age/bot gates: the Android
+                # player client sometimes serves videos the web client
+                # gates. Same auth as attempt 0, one retry max.
+                attempt_opts["extractor_args"] = {"youtube": {"player_client": ["android"]}}
+            try:
+                with yt_dlp.YoutubeDL(attempt_opts) as ydl:
+                    ydl.download([url])
+                break
+            except Exception as e:
+                if attempt == 0 and _is_auth_or_bot_error(str(e)):
+                    continue
+                raise
     except Exception as e:  # noqa: BLE001 — map yt-dlp errors to user-friendly ones
         msg = str(e)
         low = msg.lower()
